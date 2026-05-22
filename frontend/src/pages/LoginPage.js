@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-
-const API_URL = 'http://localhost:8000';
+import API_URL from '../config';
+// const API_URL = 'http://localhost:8000';
 
 function LoginPage({ setIsAuthenticated, setUsername }) {
   const [username, setUsernameState] = useState('');
@@ -10,6 +10,7 @@ function LoginPage({ setIsAuthenticated, setUsername }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();

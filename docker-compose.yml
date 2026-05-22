@@ -20,7 +20,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000" 
+      - "0.0.0.0:8000:8000" 
     volumes:
       - ./backend:/app
       - static_volume:/app/staticfiles
@@ -51,7 +51,7 @@ services:
       args:
         - REACT_APP_API_URL=http://localhost:8000
     ports:
-      - "80:80"
+      - "0.0.0.0:80:80"
     environment:
       - REACT_APP_API_URL=http://localhost:8000
     depends_on:

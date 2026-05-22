@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import API_URL from '../config';
 
-const API_URL = 'http://localhost:8000';  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+// const API_URL = 'http://localhost:8000';  // ← ДОБАВИТЬ ЭТУ СТРОКУ
 
 function RegisterPage() {
   const [formData, setFormData] = useState({

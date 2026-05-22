@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../config';
 
-const API_URL = 'http://localhost:8000';
+// const API_URL = 'http://localhost:8000';
 
 function UploadPage() {
   const [title, setTitle] = useState('');

@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-const API_URL = 'http://localhost:8000';
+import API_URL from '../config';
 
 function VideoPlayerPage() {
   const { id } = useParams();
@@ -13,7 +12,7 @@ function VideoPlayerPage() {
   const [liked, setLiked] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const viewRecordedRef = useRef(false); // Используем useRef чтобы избежать повторных вызовов
+  const [viewRecorded, setViewRecorded] = useState(false);
 
   const getToken = () => localStorage.getItem('access');
 
@@ -28,16 +27,14 @@ function VideoPlayerPage() {
       setLiked(response.data.user_has_liked || false);
       setLoading(false);
       
-      // Отправляем просмотр только один раз за сессию
-      if (!viewRecordedRef.current) {
-        viewRecordedRef.current = true;
+      if (!viewRecorded) {
         try {
           await axios.post(`${API_URL}/api/videos/${id}/increment_views/`);
-          // Обновляем счётчик в UI
           setVideo(prev => ({ ...prev, views: (prev?.views || 0) + 1 }));
         } catch (e) {
           console.log('Просмотр не засчитан');
         }
+        setViewRecorded(true);
       }
     } catch (error) {
       console.error('Ошибка:', error);
@@ -114,18 +111,16 @@ function VideoPlayerPage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <div style={{ fontSize: 48, marginBottom: 16, animation: 'pulse 1.5s ease infinite' }}>🎬</div>
-          <p>Загрузка видео...</p>
-        </div>
+      <div style={{ textAlign: 'center', padding: 50 }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🎬</div>
+        <p>Загрузка видео...</p>
       </div>
     );
   }
 
   if (error || !video) {
     return (
-      <div style={{ textAlign: 'center', marginTop: 50, fontSize: 18, color: 'white' }}>
+      <div style={{ textAlign: 'center', padding: 50, color: 'red' }}>
         ❌ {error || 'Видео не найдено'}
       </div>
     );
@@ -145,17 +140,13 @@ function VideoPlayerPage() {
   const isAuthor = currentUser === video.uploaded_by_name;
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
-      {/* Видео плеер */}
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 16px' }}>
+      {/* СТАНДАРТНЫЙ HTML5 ПЛЕЕР */}
       <div style={{
         backgroundColor: '#000',
-        borderRadius: 20,
+        borderRadius: 16,
         overflow: 'hidden',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        minHeight: 400
+        marginBottom: 20
       }}>
         <video
           src={videoUrl}
@@ -164,9 +155,9 @@ function VideoPlayerPage() {
           style={{
             width: '100%',
             height: 'auto',
-            maxHeight: '80vh',
-            display: 'block',
-            objectFit: 'contain'
+            maxHeight: '70vh',
+            objectFit: 'contain',
+            display: 'block'
           }}
         >
           <source src={videoUrl} type="video/mp4" />
@@ -176,58 +167,55 @@ function VideoPlayerPage() {
 
       {/* Информация о видео */}
       <div style={{
-        marginTop: 24,
         background: 'rgba(255,255,255,0.95)',
         borderRadius: 20,
-        padding: 24,
-        backdropFilter: 'blur(10px)'
+        padding: '16px 20px',
+        marginBottom: 20
       }}>
-        <h1 style={{ fontSize: 28, marginBottom: 12, color: '#1a1a1a' }}>{video.title}</h1>
+        <h1 style={{ fontSize: 'clamp(18px, 5vw, 24px)', marginBottom: 12 }}>{video.title}</h1>
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ display: 'flex', gap: 24, color: '#6c757d', fontSize: 14 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 12,
+          marginBottom: 16
+        }}>
+          <div style={{ display: 'flex', gap: 16, fontSize: 13, color: '#6c757d', flexWrap: 'wrap' }}>
             <span>👤 {video.uploaded_by_name}</span>
             <span>👁️ {video.views} просмотров</span>
             <span>❤️ {video.likes_count || 0} лайков</span>
           </div>
           
-          <div style={{ display: 'flex', gap: 12 }}>
-            {/* Кнопка лайка */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <button
               onClick={handleLike}
               style={{
-                background: liked 
-                  ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-                  : 'linear-gradient(135deg, #e0e0e0 0%, #ccc 100%)',
+                background: liked ? '#f093fb' : '#f0f0f0',
                 border: 'none',
-                fontSize: 16,
-                cursor: 'pointer',
-                padding: '10px 24px',
+                fontSize: 14,
+                padding: '8px 20px',
                 borderRadius: 40,
+                cursor: 'pointer',
                 color: liked ? 'white' : '#666',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                transition: 'all 0.3s ease'
+                fontWeight: 500
               }}
             >
               {liked ? '❤️' : '🤍'} {video.likes_count || 0}
             </button>
             
-            {/* Кнопка удаления (только для автора) */}
             {isAuthor && (
               <button
                 onClick={handleDelete}
                 style={{
-                  background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                  background: '#ef4444',
                   color: 'white',
                   border: 'none',
-                  padding: '10px 24px',
+                  padding: '8px 20px',
                   borderRadius: 40,
                   cursor: 'pointer',
-                  fontSize: 14,
-                  fontWeight: 600
+                  fontSize: 14
                 }}
               >
                 🗑️ Удалить
@@ -236,22 +224,23 @@ function VideoPlayerPage() {
           </div>
         </div>
         
-        <p style={{ marginTop: 20, color: '#555', lineHeight: 1.6, fontSize: 15 }}>
+        <p style={{ color: '#555', lineHeight: 1.5, fontSize: 14 }}>
           {video.description || 'Нет описания'}
         </p>
       </div>
 
       {/* Комментарии */}
       <div style={{
-        marginTop: 24,
         background: 'rgba(255,255,255,0.95)',
         borderRadius: 20,
-        padding: 24,
-        backdropFilter: 'blur(10px)'
+        padding: '16px 20px',
+        marginBottom: 20
       }}>
-        <h3 style={{ marginBottom: 20, fontSize: 20 }}>💬 Комментарии ({video.comments_count || 0})</h3>
+        <h3 style={{ marginBottom: 16, fontSize: 'clamp(16px, 4vw, 18px)' }}>
+          💬 Комментарии ({video.comments_count || 0})
+        </h3>
         
-        <form onSubmit={handleComment} style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+        <form onSubmit={handleComment} style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
           <input
             type="text"
             placeholder="Напишите комментарий..."
@@ -259,23 +248,24 @@ function VideoPlayerPage() {
             onChange={(e) => setCommentText(e.target.value)}
             style={{
               flex: 1,
-              padding: '14px 20px',
-              border: '2px solid rgba(102,126,234,0.2)',
-              borderRadius: 40,
+              padding: '12px 16px',
+              border: '1px solid #e9ecef',
+              borderRadius: 30,
               fontSize: 14,
               outline: 'none',
-              transition: 'all 0.3s ease'
+              minWidth: 150
             }}
-            onFocus={(e) => e.target.style.borderColor = '#667eea'}
-            onBlur={(e) => e.target.style.borderColor = 'rgba(102,126,234,0.2)'}
           />
           <button
             type="submit"
             disabled={submitting || !commentText.trim()}
-            className="btn-primary"
             style={{
-              padding: '0 28px',
-              borderRadius: 40,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: 30,
+              border: 'none',
+              cursor: 'pointer',
               opacity: (submitting || !commentText.trim()) ? 0.6 : 1
             }}
           >
@@ -283,34 +273,27 @@ function VideoPlayerPage() {
           </button>
         </form>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {video.comments && video.comments.length > 0 ? (
             video.comments.map(comment => (
               <div key={comment.id} style={{
-                padding: '16px 20px',
-                background: 'rgba(102,126,234,0.05)',
-                borderRadius: 16,
-                transition: 'all 0.3s ease'
+                padding: 12,
+                background: 'rgba(0,0,0,0.03)',
+                borderRadius: 16
               }}>
-                <div style={{ fontWeight: 700, marginBottom: 8, color: '#667eea' }}>
+                <div style={{ fontWeight: 600, marginBottom: 6, color: '#667eea' }}>
                   {comment.username}
                 </div>
-                <p style={{ margin: 0, color: '#333', fontSize: 14, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 14, color: '#333', marginBottom: 6 }}>
                   {comment.text}
-                </p>
-                <div style={{ fontSize: 11, color: '#aaa', marginTop: 10 }}>
+                </div>
+                <div style={{ fontSize: 11, color: '#aaa' }}>
                   {new Date(comment.created_at).toLocaleString()}
                 </div>
               </div>
             ))
           ) : (
-            <div style={{
-              textAlign: 'center',
-              padding: 48,
-              background: 'rgba(102,126,234,0.05)',
-              borderRadius: 20,
-              color: '#aaa'
-            }}>
+            <div style={{ textAlign: 'center', padding: 40, color: '#aaa' }}>
               💬 Пока нет комментариев. Будьте первым!
             </div>
           )}
